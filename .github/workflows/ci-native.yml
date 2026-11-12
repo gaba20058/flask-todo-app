@@ -47,8 +47,13 @@ jobs:
           cat << 'EOF' > run_server.py
           import sys
           import os
-          sys.path.insert(0, os.getcwd())
-          sys.path.insert(0, os.path.join(os.getcwd(), 'application'))
+          
+          base_dir = os.getcwd()
+          sys.path.insert(0, base_dir)
+          sys.path.insert(0, os.path.join(base_dir, 'application'))
+          sys.path.insert(0, os.path.join(base_dir, 'application', 'controllers'))
+          sys.path.insert(0, os.path.join(base_dir, 'application', 'models'))
+          sys.path.insert(0, os.path.join(base_dir, 'application', 'configs'))
           
           from app import create_app
           
