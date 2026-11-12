@@ -44,7 +44,9 @@ jobs:
 
       - name: Smoke test Flask server
         run: |
-          nohup python app.py > flask.log 2>&1 &
+          export FLASK_APP=app:create_app
+          export FLASK_ENV=development
+          nohup python -m flask run --host=127.0.0.1 --port=5000 > flask.log 2>&1 &
           FLASK_PID=$!
           echo "Flask started with PID $FLASK_PID"
 
@@ -57,9 +59,10 @@ jobs:
             sleep 1
           done
 
-          echo "--- curl output ---"
-          curl -f -s -o /dev/null -w "HTTP status: %{http_code}\n" http://127.0.0.1:5000/
           echo "--- flask.log ---"
           cat flask.log
+
+          echo "--- curl output ---"
+          curl -f -s -o /dev/null -w "HTTP status: %{http_code}\n" http://127.0.0.1:5000/
 
           kill $FLASK_PID || true
