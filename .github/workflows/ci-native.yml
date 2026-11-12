@@ -1,0 +1,65 @@
+name: CI Native
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Initialize SQLite database
+        run: |
+          python - <<'EOF'
+          import sqlite3, os
+          db_path = os.environ.get("DB_PATH", "app.db")
+          conn = sqlite3.connect(db_path)
+          conn.execute("""
+              CREATE TABLE IF NOT EXISTS tasks (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  content TEXT NOT NULL,
+                  completed INTEGER DEFAULT 0
+              )
+          """)
+          conn.commit()
+          conn.close()
+          print(f"Database initialized at {db_path}")
+          EOF
+
+      - name: Smoke test Flask server
+        run: |
+          nohup python app.py > flask.log 2>&1 &
+          FLASK_PID=$!
+          echo "Flask started with PID $FLASK_PID"
+
+          for i in $(seq 1 30); do
+            if curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:5000/ | grep -q "200"; then
+              echo "Server is up (attempt $i)"
+              break
+            fi
+            echo "Waiting for server... attempt $i"
+            sleep 1
+          done
+
+          echo "--- curl output ---"
+          curl -f -s -o /dev/null -w "HTTP status: %{http_code}\n" http://127.0.0.1:5000/
+          echo "--- flask.log ---"
+          cat flask.log
+
+          kill $FLASK_PID || true
