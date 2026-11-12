@@ -22,8 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install --upgrade "Flask>=2.2.0" "Jinja2>=3.1.0" "Werkzeug>=2.2.0" "markupsafe>=2.1.0"
+          pip install Flask==2.3.3 Werkzeug==2.3.7 Jinja2==3.1.2 Flask-SQLAlchemy==3.0.5 SQLAlchemy==2.0.23 Flask-Migrate==4.0.5 Flask-Babel==3.1.0
 
       - name: Initialize SQLite database
         run: |
@@ -49,6 +48,8 @@ jobs:
           import sys
           import os
           sys.path.insert(0, os.getcwd())
+          sys.path.insert(0, os.path.join(os.getcwd(), 'application'))
+          
           from app import create_app
           
           app = create_app()
