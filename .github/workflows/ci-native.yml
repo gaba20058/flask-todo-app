@@ -24,24 +24,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install Flask==2.3.3 Werkzeug==2.3.7 Jinja2==3.1.2 Flask-SQLAlchemy==3.0.5 SQLAlchemy==2.0.23 Flask-Migrate==4.0.5 Flask-Babel==3.1.0
 
-      - name: Initialize SQLite database
-        run: |
-          python - <<'EOF'
-          import sqlite3, os
-          db_path = os.environ.get("DB_PATH", "app.db")
-          conn = sqlite3.connect(db_path)
-          conn.execute("""
-              CREATE TABLE IF NOT EXISTS tasks (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  content TEXT NOT NULL,
-                  completed INTEGER DEFAULT 0
-              )
-          """)
-          conn.commit()
-          conn.close()
-          print(f"Database initialized at {db_path}")
-          EOF
-
       - name: Smoke test Flask server
         run: |
           cat << 'EOF' > run_server.py
@@ -56,8 +38,14 @@ jobs:
           sys.path.insert(0, os.path.join(base_dir, 'application', 'configs'))
           
           from app import create_app
+          from application.extensions import db
           
           app = create_app()
+          
+          with app.app_context():
+              db.create_all()
+              print("Database tables created successfully!")
+          
           if __name__ == '__main__':
               app.run(host='127.0.0.1', port=5000)
           EOF
