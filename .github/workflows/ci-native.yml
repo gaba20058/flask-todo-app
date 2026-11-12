@@ -45,10 +45,18 @@ jobs:
 
       - name: Smoke test Flask server
         run: |
-          export FLASK_APP=application.app:create_app
-          export PYTHONPATH=$PWD
+          cat << 'EOF' > run_server.py
+          import sys
+          import os
+          sys.path.insert(0, os.getcwd())
+          from app import create_app
           
-          nohup python -m flask run --host=127.0.0.1 --port=5000 > flask.log 2>&1 &
+          app = create_app()
+          if __name__ == '__main__':
+              app.run(host='127.0.0.1', port=5000)
+          EOF
+
+          nohup python run_server.py > flask.log 2>&1 &
           FLASK_PID=$!
           echo "Flask started with PID $FLASK_PID"
 
