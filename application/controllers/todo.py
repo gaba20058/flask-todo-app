@@ -11,7 +11,6 @@ todo_bp = flask.Blueprint(
     template_folder='../templates'
 )
 
-
 @todo_bp.route('/', methods=['GET', 'POST'])
 def index():
     todo = Todo.query.order_by('-id')
@@ -30,7 +29,6 @@ def index():
 
     return render_template('index.html', todo=todo)
 
-
 @todo_bp.route('/<int:todo_id>/del')
 def del_todo(todo_id):
     todo = Todo.query.filter_by(id=todo_id).first()
@@ -38,7 +36,6 @@ def del_todo(todo_id):
         todo.delete_todo()
     flash("delete task successfully")
     return redirect(url_for('todo.index'))
-
 
 @todo_bp.route('/<int:todo_id>/edit', methods=['GET', 'POST'])
 def edit(todo_id):
@@ -56,7 +53,6 @@ def edit(todo_id):
 
     return render_template('edit.html', todo=todo)
 
-
 @todo_bp.route('/<int:todo_id>/done')
 def done(todo_id):
     todo = Todo.query.filter_by(id=todo_id).first()
@@ -67,7 +63,6 @@ def done(todo_id):
 
     return redirect(url_for('todo.index'))
 
-
 @todo_bp.route('/<int:todo_id>/redo')
 def redo(todo_id):
     todo = Todo.query.filter_by(id=todo_id).first()
@@ -77,7 +72,6 @@ def redo(todo_id):
         db.session.commit()
 
     return redirect(url_for('todo.index'))
-
 
 @todo_bp.errorhandler(404)
 def page_not_found(error):
